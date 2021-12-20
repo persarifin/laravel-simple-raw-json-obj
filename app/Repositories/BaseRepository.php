@@ -8,6 +8,8 @@ use App\Http\Criterias\CriteriaInterface;
 use App\Repositories\RepositoryInterface;
 use App\Http\Presenters\PresenterInterface;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Log;
 
 class BaseRepository implements RepositoryInterface
@@ -74,5 +76,16 @@ class BaseRepository implements RepositoryInterface
         'status' => true,
         'values' => $this->query,
     ], 200);
+  }
+  public function pagination($request)
+  {
+    $limit = $request->filled('limit') && $request->limit > 0 ? $request->limit : 10;
+    $current_page = LengthAwarePaginator::resolveCurrentPage();
+
+    $collection = new Collection($this->query);
+    $collection = collect($this->query);
+    $current_page_orders = array_slice($this->query, ($current_page - 1) * $limit,$limit);
+    $data = new LengthAwarePaginator($current_page_orders, count($collection),$limit);
+    return $data;
   }
 }
